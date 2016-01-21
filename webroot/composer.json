@@ -35,6 +35,12 @@
             "Drupal\\Core\\Composer\\": "core/lib/Drupal/Core/Composer"
         }
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packagist.drupal-composer.org"
+        }
+    ],
     "scripts": {
         "pre-autoload-dump": "Drupal\\Core\\Composer\\Composer::preAutoloadDump",
         "post-autoload-dump": "Drupal\\Core\\Composer\\Composer::ensureHtaccess",
