@@ -2,8 +2,6 @@
 
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\simpletest\BrowserTestBase;
-use Drupal\touchcast\TouchcastBrowserTestBase;
-use GuzzleHttp\Client;
 use Drupal\node\Entity\Node;
 
 /**
@@ -21,16 +19,80 @@ class TcApiControllerTest extends BrowserTestBase
 
     public function testGetPage()
     {
+        $faker = \Faker\Factory::create();
+
+        $aliases = [
+            '/' . implode('/', $faker->words()),
+            '',
+            '/' . implode('/', $faker->words(1)) . '/' . $faker->randomDigit,
+        ];
+
+        $contentTypeName = 'tmp';
+
+        $this->createContentType($contentTypeName);
+
+        $nodes = [];
+        foreach ($aliases as $key => $alias) {
+            $nodes[$key] = $this->createNode($contentTypeName, $alias);
+        }
+
+        $expectedManifest = ['urls' => []];
+        foreach ($nodes as $key => $node) {
+            $expectedManifest['urls'][] = [
+                'url' => ($aliases[$key]) ?: '/node/' . $node->id(),
+                'changed_time' => $node->getChangedTime(),
+            ];
+        }
+        $response = $this->drupalGet('/api/manifest');
+        $this->assertEquals(200, $this->getSession()->getStatusCode());
+        $responseArray = json_decode($response, true);
+        $this->assertEquals($expectedManifest, $responseArray);
+
+        foreach ($responseArray['urls'] as $manifestData) {
+            $response = $this->drupalGet('/api/page', ['query' => ['url' => $manifestData['url']]]);
+            $this->assertEquals(200, $this->getSession()->getStatusCode());
+            $this->assertJson($response);
+        }
+
+        $response = $this->drupalGet('/api/page');
+        $this->assertEquals(400, $this->getSession()->getStatusCode());
+        $responseArray = json_decode($response, true);
+        $this->assertArrayHasKey('message', $responseArray);
+
+        $response = $this->drupalGet('/api/page', ['query' => ['url' => '/invalid/alias']]);
+        $this->assertEquals(400, $this->getSession()->getStatusCode());
+        $responseArray = json_decode($response, true);
+        $this->assertArrayHasKey('message', $responseArray);
+    }
+
+    /**
+     * Creates a content type.
+     *
+     * @param string $type
+     */
+    private function createContentType($type)
+    {
         $content_type = $this->container->get('entity.manager')->getStorage('node_type')->create(array(
-            'name' => 'TmpArticle',
-            'title_label' => 'TmpTitle',
-            'type' => 'TmpArticle',
+            'name' => $type,
+            'title_label' => 'Title',
+            'type' => $type,
             'create_body' => TRUE,
         ));
         $content_type->save();
+    }
 
+    /**
+     * Creates a node.
+     *
+     * @param string $type
+     * @param string $urlAlias
+     *
+     * @return Node
+     */
+    private function createNode($type, $urlAlias = '')
+    {
         $node = Node::create(array(
-            'type' => 'TmpArticle',
+            'type' => $type,
             'title' => 'your title',
             'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
             'uid' => '1',
@@ -40,22 +102,12 @@ class TcApiControllerTest extends BrowserTestBase
 
         $node->save();
 
-        $aliasStorage = $this->container->get('path.alias_storage');
-        $aliasStorage->save('/node/1', '/test/tmp', LanguageInterface::LANGCODE_NOT_SPECIFIED, 0);
+        if ($urlAlias) {
+            $aliasStorage = $this->container->get('path.alias_storage');
+            $aliasStorage->save('/node/' . $node->id(), $urlAlias, LanguageInterface::LANGCODE_NOT_SPECIFIED, 0);
+        }
 
-        $response = $this->drupalGet('/api/page', ['query' => ['url' => '/test/tmp']]);
-        $this->assertEquals(200, $this->getSession()->getStatusCode());
-        $this->assertJson($response);
-
-        $response = $this->drupalGet('/api/page');
-        $this->assertEquals(400, $this->getSession()->getStatusCode());
-        $responseArray = json_decode($response, true);
-        $this->assertArrayHasKey('message', $responseArray);
-
-        $response = $this->drupalGet('/api/page', ['query' => ['url' => '/test/tmp1']]);
-        $this->assertEquals(400, $this->getSession()->getStatusCode());
-        $responseArray = json_decode($response, true);
-        $this->assertArrayHasKey('message', $responseArray);
+        return $node;
     }
 
 }

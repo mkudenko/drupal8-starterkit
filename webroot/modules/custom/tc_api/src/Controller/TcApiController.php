@@ -3,8 +3,10 @@
 namespace Drupal\tc_api\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Path\AliasManagerInterface;
+use Drupal\node\Entity\Node;
 use Drupal\tc_api\Helpers\TcPathParser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,11 +27,17 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
     protected $aliasManager;
 
     /**
+     * @var Connection
+     */
+    protected $connection;
+
+    /**
      * @param \Drupal\Core\Path\AliasManagerInterface $aliasManager
      */
-    public function __construct(AliasManagerInterface $aliasManager)
+    public function __construct(AliasManagerInterface $aliasManager, Connection $connection)
     {
         $this->aliasManager = $aliasManager;
+        $this->connection = $connection;
     }
 
     /**
@@ -37,7 +45,8 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
      */
     public static function create(ContainerInterface $container) {
         return new static(
-            $container->get('path.alias_manager')
+            $container->get('path.alias_manager'),
+            $container->get('database')
         );
     }
 
@@ -60,6 +69,42 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
         }
 
         return new JsonResponse($node->toArray());
+    }
+
+    public function getManifest()
+    {
+        $nodeQueryResult = $this->connection->select('node_field_data')
+            ->fields('node_field_data', ['nid', 'changed'])
+            ->execute();
+
+        $sources = [];
+        $nodeData = [];
+        foreach ($nodeQueryResult as $nodeQueryRecord) {
+            $source = '/node/' . $nodeQueryRecord->nid;
+            $sources[] = $source;
+            $nodeData[] = [
+                'source' => $source,
+                'changed_time' => $nodeQueryRecord->changed,
+            ];
+        }
+
+        $aliasesQuery = $this->connection->select('url_alias')
+            ->fields('url_alias', ['source', 'alias']);
+        $aliasesQuery->condition('source', $sources, 'IN');
+        $aliases = $aliasesQuery->execute()->fetchAllAssoc('source');
+
+        foreach ($nodeData as $key => $record) {
+            if (isset($aliases[$record['source']])) {
+                $record['url'] = $aliases[$record['source']]->alias;
+            } else {
+                $record['url'] = $record['source'];
+            }
+
+            unset($record['source']);
+            $nodeData[$key] = $record;
+        }
+
+        return new JsonResponse(['urls' => $nodeData]);
     }
 
 }
