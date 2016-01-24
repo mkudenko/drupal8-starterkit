@@ -1,0 +1,9 @@
+name: TC API
+type: module
+description: 'Provides API.'
+package: Custom
+version: VERSION
+core: 8.x
+dependencies:
+  - node
+  - path

@@ -1,0 +1,6 @@
+tc_api.tc_api_controller_get_page:
+  path: '/api/page'
+  defaults:
+    _controller: '\Drupal\tc_api\Controller\TcApiController::getPage'
+  requirements:
+    _permission: 'access content'
