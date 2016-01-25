@@ -51,11 +51,11 @@ class TcApiControllerTest extends BrowserTestBase
 
         $nodeTitles = [];
 
-        $expectedManifest = ['urls' => []];
+        $expectedManifest = ['pages' => []];
         foreach ($nodesData as $key => $nodeData) {
             $nid = $nodeData['node']->id();
             $url = ($nodeData['alias']) ?: '/node/' . $nid;
-            $expectedManifest['urls'][] = [
+            $expectedManifest['pages'][] = [
                 'id' => $nid,
                 'url' => $url,
                 'changed_time' => $nodeData['node']->getChangedTime(),
@@ -81,7 +81,7 @@ class TcApiControllerTest extends BrowserTestBase
         $this->assertEquals($this->expectedManifest, $responseArray);
 
         // Test the endpoints for each node.
-        foreach ($responseArray['urls'] as $manifestData) {
+        foreach ($responseArray['pages'] as $manifestData) {
             $response = $this->drupalGet('/api/page', ['query' => ['url' => $manifestData['url']]]);
             $this->assertEquals(200, $this->getSession()->getStatusCode());
             $responseArray = json_decode($response, true);

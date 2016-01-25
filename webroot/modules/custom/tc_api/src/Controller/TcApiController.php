@@ -73,39 +73,40 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
 
     public function getManifest()
     {
-        $nodeQueryResult = $this->connection->select('node_field_data')
+        $pages = [];
+
+        $nodesQueryResult = $this->connection->select('node_field_data')
             ->fields('node_field_data', ['nid', 'changed'])
             ->execute();
 
-        $sources = [];
-        $nodeData = [];
-        foreach ($nodeQueryResult as $nodeQueryRecord) {
-            $source = '/node/' . $nodeQueryRecord->nid;
-            $sources[] = $source;
-            $nodeData[] = [
-                'id' => $nodeQueryRecord->nid,
-                'source' => $source,
-                'changed_time' => $nodeQueryRecord->changed,
+        $nodeSourceUrls = [];
+        foreach ($nodesQueryResult as $nodeData) {
+            $nodeSourceUrl = '/node/' . $nodeData->nid;
+            $nodeSourceUrls[] = $nodeSourceUrl;
+            $pages[] = [
+                'id' => $nodeData->nid,
+                'source' => $nodeSourceUrl,
+                'changed_time' => $nodeData->changed,
             ];
         }
 
         $aliasesQuery = $this->connection->select('url_alias')
             ->fields('url_alias', ['source', 'alias']);
-        $aliasesQuery->condition('source', $sources, 'IN');
+        $aliasesQuery->condition('source', $nodeSourceUrls, 'IN');
         $aliases = $aliasesQuery->execute()->fetchAllAssoc('source');
 
-        foreach ($nodeData as $key => $record) {
-            if (isset($aliases[$record['source']])) {
-                $record['url'] = $aliases[$record['source']]->alias;
+        foreach ($pages as $key => $page) {
+            if (isset($aliases[$page['source']])) {
+                $page['url'] = $aliases[$page['source']]->alias;
             } else {
-                $record['url'] = $record['source'];
+                $page['url'] = $page['source'];
             }
 
-            unset($record['source']);
-            $nodeData[$key] = $record;
+            unset($page['source']);
+            $pages[$key] = $page;
         }
 
-        return new JsonResponse(['urls' => $nodeData]);
+        return new JsonResponse(['pages' => $pages]);
     }
 
 }
