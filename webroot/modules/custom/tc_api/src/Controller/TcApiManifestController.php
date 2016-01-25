@@ -42,40 +42,95 @@ class TcApiManifestController extends TcApiBaseController implements ContainerIn
      */
     public function getManifest()
     {
-        $pages = [];
+        $pagesData = $this->getSourceUrlsAndChangedTimestampsForExistingPages();
+
+        $sourceUrls = $this->getListOfSourceUrls($pagesData);
+
+        $urlAliases = $this->getPageUrlAliases($sourceUrls);
+
+        $this->addUrlAliasesToPagesData($pagesData, $urlAliases);
+
+        return $this->jsonSuccess(['pages' => $pagesData]);
+    }
+
+    /**
+     * @return array
+     */
+    private function getSourceUrlsAndChangedTimestampsForExistingPages()
+    {
+        $data = [];
 
         $nodesQueryResult = $this->connection->select('node_field_data')
             ->fields('node_field_data', ['nid', 'changed'])
             ->execute();
 
-        $nodeSourceUrls = [];
         foreach ($nodesQueryResult as $nodeData) {
-            $nodeSourceUrl = '/node/' . $nodeData->nid;
-            $nodeSourceUrls[] = $nodeSourceUrl;
-            $pages[] = [
-                'id' => $nodeData->nid,
-                'source' => $nodeSourceUrl,
+            $data[] = [
+                'source_url' => '/node/' . $nodeData->nid,
                 'changed_time' => $nodeData->changed,
             ];
         }
 
-        $aliasesQuery = $this->connection->select('url_alias')
-            ->fields('url_alias', ['source', 'alias']);
-        $aliasesQuery->condition('source', $nodeSourceUrls, 'IN');
-        $aliases = $aliasesQuery->execute()->fetchAllAssoc('source');
+        return $data;
+    }
 
-        foreach ($pages as $key => $page) {
-            if (isset($aliases[$page['source']])) {
-                $page['url'] = $aliases[$page['source']]->alias;
-            } else {
-                $page['url'] = $page['source'];
-            }
-
-            unset($page['source']);
-            $pages[$key] = $page;
+    /**
+     * @param array $pagesData
+     *
+     * @return array
+     */
+    private function getListOfSourceUrls($pagesData)
+    {
+        $sourceUrls = [];
+        foreach ($pagesData as $pageData) {
+            $sourceUrls[] = $pageData['source_url'];
         }
 
-        return $this->jsonSuccess(['pages' => $pages]);
+        return $sourceUrls;
+    }
+
+    /**
+     * @param array $sourceUrls
+     *
+     * @return array
+     */
+    private function getPageUrlAliases($sourceUrls)
+    {
+        $aliases = [];
+
+        $aliasesQuery = $this->connection->select('url_alias')
+            ->fields('url_alias', ['source', 'alias']);
+        $aliasesQuery->condition('source', $sourceUrls, 'IN');
+
+        $result = $aliasesQuery->execute();
+
+        foreach ($result as $record) {
+            $aliases[$record->source] = $record->alias;
+        }
+
+        return $aliases;
+    }
+
+    /**
+     * @param array $pagesData
+     * @param array $urlAliases
+     *
+     * @return array
+     */
+    private function addUrlAliasesToPagesData(&$pagesData, $urlAliases)
+    {
+        foreach ($pagesData as $key => $pageData) {
+            $pageSourceUrl = $pageData['source_url'];
+
+            if (isset($urlAliases[$pageSourceUrl])) {
+                $pageData['url'] = $urlAliases[$pageSourceUrl];
+            } else {
+                $pageData['url'] = $pageSourceUrl;
+            }
+
+            unset($pageData['source_url']);
+            $pagesData[$key] = $pageData;
+        }
     }
 
 }

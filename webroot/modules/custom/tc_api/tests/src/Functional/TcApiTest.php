@@ -56,7 +56,6 @@ class TcApiTest extends BrowserTestBase
             $nid = $nodeData['node']->id();
             $url = ($nodeData['alias']) ?: '/node/' . $nid;
             $expectedManifest['pages'][] = [
-                'id' => $nid,
                 'url' => $url,
                 'changed_time' => $nodeData['node']->getChangedTime(),
             ];
