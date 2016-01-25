@@ -8,7 +8,7 @@ use Drupal\node\Entity\Node;
  * Class TcApiControllerTest
  * @group tc_api
  */
-class TcApiControllerTest extends BrowserTestBase
+class TcApiTest extends BrowserTestBase
 {
 
     public static $modules = [
@@ -72,33 +72,15 @@ class TcApiControllerTest extends BrowserTestBase
      *
      * It's not broken down into smaller tests because every webtest takes about 50 seconds to set up.
      */
-    public function testApiWorkflow()
+    public function testApi()
     {
-        // Test the manifest endpoint.
-        $response = $this->drupalGet('/api/manifest');
-        $this->assertEquals(200, $this->getSession()->getStatusCode());
-        $responseArray = json_decode($response, true);
-        $this->assertEquals($this->expectedManifest, $responseArray);
+        $this->checkManifestEndpoint();
 
-        // Test the endpoints for each node.
-        foreach ($responseArray['pages'] as $manifestData) {
-            $response = $this->drupalGet('/api/page', ['query' => ['url' => $manifestData['url']]]);
-            $this->assertEquals(200, $this->getSession()->getStatusCode());
-            $responseArray = json_decode($response, true);
-            $this->assertEquals($this->nodesTitles[$manifestData['url']], $responseArray['title'][0]['value']);
-        }
+        $this->checkPageEndpoint();
 
-        // Test the node endpoint exception.
-        $response = $this->drupalGet('/api/page');
-        $this->assertEquals(400, $this->getSession()->getStatusCode());
-        $responseArray = json_decode($response, true);
-        $this->assertArrayHasKey('message', $responseArray);
+        $this->checkPageEndpointThrowsExceptionForMissingUrl();
 
-        // Test the node enpoint exception.
-        $response = $this->drupalGet('/api/page', ['query' => ['url' => '/invalid/alias']]);
-        $this->assertEquals(400, $this->getSession()->getStatusCode());
-        $responseArray = json_decode($response, true);
-        $this->assertArrayHasKey('message', $responseArray);
+        $this->checkPageEndpointThrowsExceptionForInvalidUrl();
     }
 
     /**
@@ -144,6 +126,40 @@ class TcApiControllerTest extends BrowserTestBase
         }
 
         return $node;
+    }
+
+    private function checkManifestEndpoint()
+    {
+        $response = $this->drupalGet('/api/manifest');
+        $this->assertEquals(200, $this->getSession()->getStatusCode());
+        $responseArray = json_decode($response, true);
+        $this->assertEquals($this->expectedManifest, $responseArray);
+    }
+
+    private function checkPageEndpoint()
+    {
+        foreach ($this->expectedManifest['pages'] as $pageData) {
+            $response = $this->drupalGet('/api/page', ['query' => ['url' => $pageData['url']]]);
+            $this->assertEquals(200, $this->getSession()->getStatusCode());
+            $responseArray = json_decode($response, true);
+            $this->assertEquals($this->nodesTitles[$pageData['url']], $responseArray['title'][0]['value']);
+        }
+    }
+
+    private function checkPageEndpointThrowsExceptionForMissingUrl()
+    {
+        $response = $this->drupalGet('/api/page');
+        $this->assertEquals(400, $this->getSession()->getStatusCode());
+        $responseArray = json_decode($response, true);
+        $this->assertArrayHasKey('message', $responseArray);
+    }
+
+    private function checkPageEndpointThrowsExceptionForInvalidUrl()
+    {
+        $response = $this->drupalGet('/api/page', ['query' => ['url' => '/invalid/alias']]);
+        $this->assertEquals(400, $this->getSession()->getStatusCode());
+        $responseArray = json_decode($response, true);
+        $this->assertArrayHasKey('message', $responseArray);
     }
 
 }

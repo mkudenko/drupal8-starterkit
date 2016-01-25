@@ -2,29 +2,16 @@
 
 namespace Drupal\tc_api\Controller;
 
-use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
-use Drupal\Core\Path\AliasManagerInterface;
-use Drupal\node\Entity\Node;
-use Drupal\tc_api\Helpers\TcPathParser;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Created by PhpStorm.
- * User: mkudenko
- * Date: 22/01/16
- * Time: 9:32 AM
+ * TC API manifest controller class.
  */
-class TcApiController extends ControllerBase implements ContainerInjectionInterface
+class TcApiManifestController extends TcApiBaseController implements ContainerInjectionInterface
 {
-
-    /**
-     * @var \Drupal\Core\Path\AliasStorageInterface
-     */
-    protected $aliasManager;
 
     /**
      * @var Connection
@@ -32,11 +19,10 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
     protected $connection;
 
     /**
-     * @param \Drupal\Core\Path\AliasManagerInterface $aliasManager
+     * @param Connection $connection
      */
-    public function __construct(AliasManagerInterface $aliasManager, Connection $connection)
+    public function __construct(Connection $connection)
     {
-        $this->aliasManager = $aliasManager;
         $this->connection = $connection;
     }
 
@@ -45,32 +31,15 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
      */
     public static function create(ContainerInterface $container) {
         return new static(
-            $container->get('path.alias_manager'),
             $container->get('database')
         );
     }
 
-    public function getPage(Request $request)
-    {
-        $url_alias = $request->get('url');
-
-        if (!$url_alias) {
-            return new JsonResponse(['message' => 'Missing URL parameter.'], 400);
-        }
-
-        $path = $this->aliasManager->getPathByAlias($url_alias);
-
-        $pathParser = new TcPathParser($path);
-
-        try {
-            $node = \Drupal::entityTypeManager()->getStorage($pathParser->getEntityType())->load($pathParser->getEntityId());
-        } catch (\Exception $e) {
-            return new JsonResponse(['message' => $e->getMessage()], 400);
-        }
-
-        return new JsonResponse($node->toArray());
-    }
-
+    /**
+     * Return JSON object with all existing page urls, timestamps of the last change.
+     *
+     * @return JsonResponse
+     */
     public function getManifest()
     {
         $pages = [];
@@ -106,7 +75,7 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
             $pages[$key] = $page;
         }
 
-        return new JsonResponse(['pages' => $pages]);
+        return $this->jsonSuccess(['pages' => $pages]);
     }
 
 }

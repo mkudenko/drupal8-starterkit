@@ -1,13 +1,12 @@
-tc_api.tc_api_controller_get_page:
-  path: '/api/page'
-  defaults:
-    _controller: '\Drupal\tc_api\Controller\TcApiController::getPage'
-  requirements:
-    _permission: 'access content'
-tc_api.tc_api_controller_get_manifest:
+tc_api.manifest:
   path: '/api/manifest'
   defaults:
-    _controller: '\Drupal\tc_api\Controller\TcApiController::getManifest'
+    _controller: '\Drupal\tc_api\Controller\TcApiManifestController::getManifest'
   requirements:
     _permission: 'access content'
-
+tc_api.page:
+  path: '/api/page'
+  defaults:
+    _controller: '\Drupal\tc_api\Controller\TcApiPageController::getPage'
+  requirements:
+    _permission: 'access content'
