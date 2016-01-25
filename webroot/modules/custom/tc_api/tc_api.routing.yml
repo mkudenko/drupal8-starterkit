@@ -4,9 +4,11 @@ tc_api.manifest:
     _controller: '\Drupal\tc_api\Controller\TcApiManifestController::getManifest'
   requirements:
     _permission: 'access content'
+    _method: 'GET'
 tc_api.page:
   path: '/api/page'
   defaults:
     _controller: '\Drupal\tc_api\Controller\TcApiPageController::getPage'
   requirements:
     _permission: 'access content'
+    _method: 'GET'
