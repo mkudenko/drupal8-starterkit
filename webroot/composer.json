@@ -8,7 +8,10 @@
         "wikimedia/composer-merge-plugin": "~1.3"
     },
     "replace": {
-        "drupal/core": "~8.0"
+        "drupal/core": "~8.0",
+        "drupal/webprofiler": "8.*",
+        "drupal/flysystem": "8.*",
+        "drupal/flysystem_s3": "8.*"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -23,7 +26,10 @@
         ],
         "merge-plugin": {
             "include": [
-                "core/composer.json"
+                "core/composer.json",
+                "modules/contrib/devel/webprofiler/composer.json",
+                "modules/contrib/flysystem/composer.json",
+                "modules/contrib/flysystem_s3/composer.json"
             ],
             "recurse": false,
             "replace": false,
@@ -32,7 +38,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Drupal\\Core\\Composer\\": "core/lib/Drupal/Core/Composer"
+            "Drupal\\Core\\Composer\\": "core/lib/Drupal/Core/Composer",
+            "Drupal\\composer_manager\\Composer\\": "modules/contrib/composer_manager/src/Composer"
         }
     },
     "repositories": [
@@ -45,7 +52,9 @@
         "pre-autoload-dump": "Drupal\\Core\\Composer\\Composer::preAutoloadDump",
         "post-autoload-dump": "Drupal\\Core\\Composer\\Composer::ensureHtaccess",
         "post-package-install": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
-        "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup"
+        "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
+        "drupal-rebuild": "Drupal\\composer_manager\\Composer\\Command::rebuild",
+        "drupal-update": "Drupal\\composer_manager\\Composer\\Command::update"
     },
     "require-dev": {
         "fzaninotto/faker": "^1.5"

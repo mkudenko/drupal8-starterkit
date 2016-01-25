@@ -1,0 +1,42 @@
+<?php
+
+/**
+ * @file
+ * Provides access to various filesystem backends using Flysystem.
+ */
+
+use Drupal\Core\Site\Settings;
+
+/**
+ * Implements hook_cron().
+ */
+function flysystem_cron()
+{
+    Drupal::service('flysystem_factory')->ensure();
+}
+
+/**
+ * Implements hook_rebuild().
+ */
+function flysystem_rebuild()
+{
+    Drupal::service('flysystem_factory')->ensure();
+}
+
+/**
+ * Implements hook_file_download().
+ */
+function flysystem_file_download($uri)
+{
+    $schemes = Settings::get('flysystem', []);
+    $scheme = Drupal::service('file_system')->uriScheme($uri);
+
+    if (!$scheme || !isset($schemes[$scheme])) {
+        return;
+    }
+
+    return [
+        'Content-Type'   => Drupal::service('file.mime_type.guesser.extension')->guess($uri),
+        'Content-Length' => filesize($uri),
+    ];
+}
