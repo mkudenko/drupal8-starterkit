@@ -12,53 +12,89 @@ class TcApiControllerTest extends BrowserTestBase
 {
 
     public static $modules = [
-        'tc_api',
-        'path',
         'node',
+        'path',
+        'tc_api',
     ];
 
-    public function testGetPage()
+    private $expectedManifest;
+
+    private $nodesTitles;
+
+    public function setUp()
     {
+        parent::setUp();
+
         $faker = \Faker\Factory::create();
 
-        $aliases = [
-            '/' . implode('/', $faker->words()),
-            '',
-            '/' . implode('/', $faker->words(1)) . '/' . $faker->randomDigit,
-        ];
-
-        $contentTypeName = 'tmp';
-
+        $contentTypeName = $faker->word;
         $this->createContentType($contentTypeName);
 
-        $nodes = [];
-        foreach ($aliases as $key => $alias) {
-            $nodes[$key] = $this->createNode($contentTypeName, $alias);
+        $nodesData = [
+            [
+                'title' => $faker->sentence(3),
+                'alias' => '/' . implode('/', $faker->words()),
+            ],
+            [
+                'title' => $faker->sentence(3),
+                'alias' => '',
+            ],
+            [
+                'title' => $faker->sentence(3),
+                'alias' => '/' . $faker->word . '/' . $faker->randomDigit,
+            ],
+        ];
+
+        foreach ($nodesData as $key => $nodeData) {
+            $nodesData[$key]['node'] = $this->createNode($contentTypeName, $nodeData['title'], $nodeData['alias']);
         }
 
+        $nodeTitles = [];
+
         $expectedManifest = ['urls' => []];
-        foreach ($nodes as $key => $node) {
+        foreach ($nodesData as $key => $nodeData) {
+            $nid = $nodeData['node']->id();
+            $url = ($nodeData['alias']) ?: '/node/' . $nid;
             $expectedManifest['urls'][] = [
-                'url' => ($aliases[$key]) ?: '/node/' . $node->id(),
-                'changed_time' => $node->getChangedTime(),
+                'id' => $nid,
+                'url' => $url,
+                'changed_time' => $nodeData['node']->getChangedTime(),
             ];
+            $nodeTitles[$url] = $nodeData['title'];
         }
+
+        $this->expectedManifest = $expectedManifest;
+        $this->nodesTitles = $nodeTitles;
+    }
+
+    /**
+     * That test tests the all the endpoints that the denormalizer microservice would hit.
+     *
+     * It's not broken down into smaller tests because every webtest takes about 50 seconds to set up.
+     */
+    public function testApiWorkflow()
+    {
+        // Test the manifest endpoint.
         $response = $this->drupalGet('/api/manifest');
         $this->assertEquals(200, $this->getSession()->getStatusCode());
         $responseArray = json_decode($response, true);
-        $this->assertEquals($expectedManifest, $responseArray);
+        $this->assertEquals($this->expectedManifest, $responseArray);
 
+        // Test the endpoints for each node.
         foreach ($responseArray['urls'] as $manifestData) {
             $response = $this->drupalGet('/api/page', ['query' => ['url' => $manifestData['url']]]);
             $this->assertEquals(200, $this->getSession()->getStatusCode());
-            $this->assertJson($response);
+            $responseArray = json_decode($response, true);
+            $this->assertEquals($this->nodesTitles[$manifestData['url']], $responseArray['title'][0]['value']);
         }
 
+        // Test the node endpoint exception.
         $response = $this->drupalGet('/api/page');
         $this->assertEquals(400, $this->getSession()->getStatusCode());
         $responseArray = json_decode($response, true);
         $this->assertArrayHasKey('message', $responseArray);
 
+        // Test the node enpoint exception.
         $response = $this->drupalGet('/api/page', ['query' => ['url' => '/invalid/alias']]);
         $this->assertEquals(400, $this->getSession()->getStatusCode());
         $responseArray = json_decode($response, true);
@@ -82,18 +118,18 @@ class TcApiControllerTest extends BrowserTestBase
     }
 
     /**
-     * Creates a node.
+     * Creates a node with a specified url alias.
      *
      * @param string $type
      * @param string $urlAlias
      *
      * @return Node
      */
-    private function createNode($type, $urlAlias = '')
+    private function createNode($type, $title, $urlAlias = '')
     {
         $node = Node::create(array(
             'type' => $type,
-            'title' => 'your title',
+            'title' => $title,
             'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
             'uid' => '1',
             'status' => 1,

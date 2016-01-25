@@ -83,6 +83,7 @@ class TcApiController extends ControllerBase implements ContainerInjectionInterf
             $source = '/node/' . $nodeQueryRecord->nid;
             $sources[] = $source;
             $nodeData[] = [
+                'id' => $nodeQueryRecord->nid,
                 'source' => $source,
                 'changed_time' => $nodeQueryRecord->changed,
             ];
