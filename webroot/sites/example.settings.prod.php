@@ -45,3 +45,26 @@ $databases = [
  * @endcode
  */
 $settings['hash_salt'] = 'some_random_string';
+
+/**
+ * External S3 compatible file storage.
+ */
+/* -- Delete this line if you want to use these DB settings.
+$schemes = [
+    's3' => [
+        'driver' => 's3',
+        'config' => [
+            'key'    => 'your key',
+            'secret' => 'your secret',
+            'region' => 'your region',
+            'bucket' => 'your bucket',
+
+            // Optional.
+
+            // A cname that resolves to your bucket. Used for URL generation.
+            'cname'  => 'example.com',
+        ],
+    ],
+];
+$settings['flysystem'] = $schemes;
+// */

@@ -2,6 +2,7 @@ module:
   block: 0
   breakpoint: 0
   ckeditor: 0
+  composer_manager: 0
   datetime: 0
   dblog: 0
   dynamic_page_cache: 0
@@ -10,6 +11,8 @@ module:
   field_ui: 0
   file: 0
   filter: 0
+  flysystem: 0
+  flysystem_s3: 0
   image: 0
   link: 0
   node: 0

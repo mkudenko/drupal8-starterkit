@@ -14,4 +14,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 SITES_DIR="${DIR}/../webroot/sites"
 
-SITE_INSTALLATION_CMD="drush si config_installer --account-name=admin --account-pass=password --account-mail=admin@example.com --site-mail=admin@example.com --site-name='Drupal 8' -y"
+SITE_INSTALLATION_CMD="drush si config_installer --account-name=admin --account-pass=password --account-mail=admin@example.com --site-mail=admin@example.com --site-name='Drupal 8' -y && drush cr"
