@@ -8,3 +8,4 @@ weight: 3
 is_admin: null
 permissions:
   - 'access toolbar'
+  - 'use text format filtered_html'
