@@ -1,0 +1,10 @@
+uuid: 31bcac60-bd2a-4307-9102-2e2ac7a5401b
+langcode: en
+status: true
+dependencies: {  }
+id: editor
+label: Editor
+weight: 3
+is_admin: null
+permissions:
+  - 'access toolbar'

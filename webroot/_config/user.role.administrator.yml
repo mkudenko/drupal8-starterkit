@@ -1,0 +1,11 @@
+uuid: 6730ee8b-6499-42b6-8d58-88890e5c768b
+langcode: en
+status: true
+dependencies: {  }
+id: administrator
+label: Administrator
+weight: 2
+is_admin: null
+permissions:
+  - 'create url aliases'
+  - 'access toolbar'
