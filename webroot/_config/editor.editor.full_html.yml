@@ -39,15 +39,10 @@ settings:
           name: Media
           items:
             - Blockquote
-            - DrupalImage
         -
           name: Tables
           items:
             - Table
-        -
-          name: Tools
-          items:
-            - Source
   plugins:
     stylescombo:
       styles: ''
