@@ -16,37 +16,31 @@ use Drupal\flysystem\Plugin\FlysystemPluginInterface;
  *
  * @Adapter(id = "missing")
  */
-class Missing Implements FlysystemPluginInterface
-{
+class Missing Implements FlysystemPluginInterface {
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAdapter()
-    {
-        return new MissingAdapter();
-    }
+  /**
+   * {@inheritdoc}
+   */
+  public function getAdapter() {
+    return new MissingAdapter();
+  }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getExternalUrl($uri)
-    {
-        return '';
-    }
+  /**
+   * {@inheritdoc}
+   */
+  public function getExternalUrl($uri) {
+    return '';
+  }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function ensure($force = false)
-    {
-        return [
-            [
-                'severity' => RfcLogLevel::ERROR,
-                'message'  => 'The Flysystem driver is missing.',
-                'context'  => [],
-            ],
-        ];
-    }
+  /**
+   * {@inheritdoc}
+   */
+  public function ensure($force = FALSE) {
+    return [[
+      'severity' => RfcLogLevel::ERROR,
+      'message' => 'The Flysystem driver is missing.',
+      'context' => [],
+    ]];
+  }
 
 }

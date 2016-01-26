@@ -22,17 +22,17 @@ to manage dependencies, and just install this module.
  1. Download composer_manager.
  2. Download flysystem.
  3. Initialize composer_manager:
- 4. Move into the core/ directory.
+ 4. Update composer dependencies.
  5. Install Flysystem.
  6. Enjoy.
 
 Steps performed from the root of the Drupal install. Module locations may vary.
 
 ```bash
-drush dl composer_manager && flysystem
-php modules/composer_manager/scripts/init.sh
-cd core/
-composer drupal-rebuild && composer update
+drush dl composer_manager flysystem
+php modules/composer_manager/scripts/init.php
+composer drupal-rebuild
+composer update --lock
 drush en flysystem -y
 ```
 
@@ -61,14 +61,20 @@ $schemes = [
     'driver' => 'local',         // The plugin key.
 
     'config' => [
-      'root' => '/path/to/dir',  // If 'root' is inside the public directory,
-    ],                           // then files will be served directly. Can be
-                                 // relative or absolute.
+      'root' => '/path/to/dir/outsite/drupal', // This will be treated similarly
+                                               // Drupal's private file system.
+      // Or.
+
+      'root' => 'sites/default/files/flysystem', // If the directory is inside
+      'public' => TRUE,                          // the public directory, and
+    ],                                           // public is set to TRUE,
+                                                 // files will be served
+                                                 // directly.
 
     // Optional settings that apply to all adapters.
 
-    'cache' => TRUE,             // Cache filesystem metadata. Not necessary,
-                                 // since this is a local filesystem.
+    'cache' => TRUE,             // Cache filesystem metadata. Not necessary for
+                                 // the local driver.
 
     'replicate' => 'ftpexample', // 'replicate' writes to both filesystems, but
                                  // reads from this one. Functions as a backup.

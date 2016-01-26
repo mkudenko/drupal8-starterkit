@@ -35,10 +35,20 @@ $databases = [
 $settings['hash_salt'] = 'some_random_string';
 
 /**
- * External S3 compatible file storage.
+ * File storage.
  */
 /* -- Delete this line if you want to use these DB settings.
 $schemes = [
+    'local' => [
+        'driver'    => 'local',
+        'config'    => [
+            'root' => 'sites/default/files',
+        ],
+        'cache'     => false,
+        'replicate' => 's3',
+        'serve_js'  => true,
+        'serve_css' => true,
+    ],
     's3' => [
         'driver' => 's3',
         'config' => [

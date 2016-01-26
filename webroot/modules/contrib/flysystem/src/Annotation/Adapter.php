@@ -20,21 +20,20 @@ use Drupal\Component\Annotation\Plugin;
  *
  * @Annotation
  */
-class Adapter extends Plugin
-{
+class Adapter extends Plugin {
 
-    /**
-     * The plugin ID.
-     *
-     * @var string
-     */
-    public $id;
+  /**
+   * The plugin ID.
+   *
+   * @var string
+   */
+  public $id;
 
-    /**
-     * A list of extension dependencies.
-     *
-     * @var string[]
-     */
-    public $extensions = [];
+  /**
+   * A list of extension dependencies.
+   *
+   * @var string[]
+   */
+  public $extensions = [];
 
 }

@@ -21,68 +21,64 @@ use League\Flysystem\Adapter\Ftp as FtpAdapter;
  *   extensions = {"ftp"}
  * )
  */
-class Ftp implements FlysystemPluginInterface
-{
+class Ftp implements FlysystemPluginInterface {
 
-    use FlysystemUrlTrait;
+  use FlysystemUrlTrait;
 
-    /**
-     * Plugin configuration.
-     *
-     * @var array
-     */
-    protected $configuration;
+  /**
+   * Plugin configuration.
+   *
+   * @var array
+   */
+  protected $configuration;
 
-    /**
-     * Constructs an Ftp object.
-     *
-     * @param array $configuration
-     *   Plugin configuration array.
-     */
-    public function __construct(array $configuration)
-    {
-        $this->configuration = $configuration;
+  /**
+   * Constructs an Ftp object.
+   *
+   * @param array $configuration
+   *   Plugin configuration array.
+   */
+  public function __construct(array $configuration) {
+    $this->configuration = $configuration;
 
-        if (empty($this->configuration['host'])) {
-            $this->configuration['host'] = '127.0.0.1';
-        }
+    if (empty($this->configuration['host'])) {
+      $this->configuration['host'] = '127.0.0.1';
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getAdapter() {
+    try {
+      $adapter = new FtpAdapter($this->configuration);
+      $adapter->connect();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAdapter()
-    {
-        try {
-            $adapter = new FtpAdapter($this->configuration);
-            $adapter->connect();
-        } catch (\RuntimeException $e) {
-            // A problem connecting to the server.
-            $adapter = new MissingAdapter();
-        }
-
-        return $adapter;
+    catch (\RuntimeException $e) {
+      // A problem connecting to the server.
+      $adapter = new MissingAdapter();
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function ensure($force = false)
-    {
-        if ($this->getAdapter() instanceof FtpAdapter) {
-            return [];
-        }
+    return $adapter;
+  }
 
-        return [
-            [
-                'severity' => RfcLogLevel::ERROR,
-                'message'  => 'There was an error connecting to the FTP server %host:%port.',
-                'context'  => [
-                    '%host' => $this->configuration['host'],
-                    '%port' => isset($this->configuration['port']) ? $this->configuration['port'] : 21,
-                ],
-            ],
-        ];
+  /**
+   * {@inheritdoc}
+   */
+  public function ensure($force = FALSE) {
+    if ($this->getAdapter() instanceof FtpAdapter) {
+      return [];
     }
+
+    return [[
+      'severity' => RfcLogLevel::ERROR,
+      'message' => 'There was an error connecting to the FTP server %host:%port.',
+      'context' => [
+        '%host' => $this->configuration['host'],
+        '%port' => isset($this->configuration['port']) ? $this->configuration['port'] : 21,
+      ],
+    ]];
+  }
 
 }

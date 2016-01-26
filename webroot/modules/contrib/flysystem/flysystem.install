@@ -10,58 +10,55 @@ use Drupal\flysystem\Logger\Convert;
 /**
  * Implements hook_requirements().
  */
-function flysystem_requirements($phase)
-{
-    $requirements = [];
+function flysystem_requirements($phase) {
+  $requirements = [];
 
-    if ($phase !== 'runtime' && $phase !== 'install') {
-        return $requirements;
-    }
-
-    $dependencies = [
-        'League\Flysystem\Filesystem'                 => \Drupal::translation()->translate('Flysystem'),
-        'League\Flysystem\Cached\CachedAdapter'       => \Drupal::translation()->translate('cache adapter'),
-        'League\Flysystem\Replicate\ReplicateAdapter' => \Drupal::translation()->translate('replicate adapter'),
-        'Twistor\FlysystemStreamWrapper'              => \Drupal::translation()->translate('stream wrapper'),
-    ];
-
-    $missing = array_filter(array_map(function ($dependency) use ($dependencies) {
-        return class_exists($dependency) ? false : $dependencies[$dependency];
-    }, array_keys($dependencies)));
-
-    // @codeCoverageIgnoreStart
-    if ($missing) {
-        $requirements['flysystem_dependencies'] = [
-            'title'       => \Drupal::translation()->translate('Flysystem'),
-            'description' => \Drupal::translation()->translate('Dependencies missing: @deps.',
-                ['@deps' => implode(', ', $missing)]),
-            'severity'    => REQUIREMENT_ERROR,
-        ];
-    }
-    // @codeCoverageIgnoreEnd
-
-    if ($phase !== 'runtime') {
-        return $requirements;
-    }
-
-    // @todo Map severity to requirement severity.
-    foreach (\Drupal::service('flysystem_factory')->ensure() as $scheme => $errors) {
-        foreach ($errors as $error) {
-            $requirements['flysystem:' . $scheme] = [
-                'title'       => \Drupal::translation()->translate('Flysystem: @scheme', ['@scheme' => $scheme]),
-                'description' => \Drupal::translation()->translate($error['message'], $error['context']),
-                'severity'    => Convert::rfcToHookRequirements($error['severity']),
-            ];
-        }
-    }
-
+  if ($phase !== 'runtime' && $phase !== 'install') {
     return $requirements;
+  }
+
+  $dependencies = [
+    'League\Flysystem\Filesystem' => \Drupal::translation()->translate('Flysystem'),
+    'League\Flysystem\Cached\CachedAdapter' => \Drupal::translation()->translate('cache adapter'),
+    'League\Flysystem\Replicate\ReplicateAdapter' => \Drupal::translation()->translate('replicate adapter'),
+    'Twistor\FlysystemStreamWrapper' => \Drupal::translation()->translate('stream wrapper'),
+  ];
+
+  $missing = array_filter(array_map(function ($dependency) use ($dependencies) {
+    return class_exists($dependency) ? FALSE : $dependencies[$dependency];
+  }, array_keys($dependencies)));
+
+  // @codeCoverageIgnoreStart
+  if ($missing) {
+    $requirements['flysystem_dependencies'] = [
+      'title' => \Drupal::translation()->translate('Flysystem'),
+      'description' => \Drupal::translation()->translate('Dependencies missing: @deps.', ['@deps' => implode(', ', $missing)]),
+      'severity' => REQUIREMENT_ERROR,
+    ];
+  }
+  // @codeCoverageIgnoreEnd
+
+  if ($phase !== 'runtime') {
+    return $requirements;
+  }
+
+  // @todo Map severity to requirement severity.
+  foreach (\Drupal::service('flysystem_factory')->ensure() as $scheme => $errors) {
+    foreach ($errors as $error) {
+      $requirements['flysystem:' . $scheme] = [
+        'title' => \Drupal::translation()->translate('Flysystem: @scheme', ['@scheme' => $scheme]),
+        'description' => \Drupal::translation()->translate($error['message'], $error['context']),
+        'severity' => Convert::rfcToHookRequirements($error['severity']),
+      ];
+    }
+  }
+
+  return $requirements;
 }
 
 /**
  * Implements hook_install().
  */
-function flysystem_install()
-{
-    Drupal::service('flysystem_factory')->ensure();
+function flysystem_install() {
+  Drupal::service('flysystem_factory')->ensure();
 }

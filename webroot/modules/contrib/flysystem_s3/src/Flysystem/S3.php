@@ -12,6 +12,7 @@ use Aws\Credentials\Credentials;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\flysystem\Plugin\FlysystemPluginInterface;
 use Drupal\flysystem\Plugin\FlysystemUrlTrait;
+use Drupal\flysystem\Plugin\ImageStyleGenerationTrait;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
 
 /**

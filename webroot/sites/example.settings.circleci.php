@@ -27,6 +27,19 @@ $databases = [
 // */
 
 /**
+ * File storage.
+ */
+$schemes = [
+    'local' => [
+        'driver'    => 'local',
+        'config'    => [
+            'root' => 'sites/default/files',
+        ],
+    ],
+];
+$settings['flysystem'] = $schemes;
+
+/**
  * Salt for one-time login links, cancel links, form tokens, etc.
  *
  * This variable will be set to a random value by the installer. All one-time

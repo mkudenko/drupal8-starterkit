@@ -36,6 +36,9 @@ That repo is designed to be the starting point for your new Drupal 8 project. Pl
     `cp webroot/sites/example.settings.local.php webroot/sites/default/settings.local.php`
 
     Open `settings.local.php` and activate the DB settings by removing the line above `$databases = [`.
+    
+    Activate the file storage settings by removing the line above `$schemes = [`.
+    Note: **DO NOT** use live S3 credentials!
 
 5. Install the site:
 
