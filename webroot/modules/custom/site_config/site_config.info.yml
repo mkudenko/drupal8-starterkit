@@ -1,0 +1,6 @@
+name: Site Configuration
+type: module
+description: 'Site specific configuration.'
+package: Custom
+version: VERSION
+core: 8.x

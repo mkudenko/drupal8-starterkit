@@ -22,6 +22,7 @@ module:
   page_cache: 0
   path: 0
   simpletest: 0
+  site_config: 0
   system: 0
   tc_api: 0
   telephone: 0

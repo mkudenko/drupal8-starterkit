@@ -1,14 +1,12 @@
 <?php namespace Drupal\Tests\tc_api\Functional;
 
-use Drupal\Core\Language\LanguageInterface;
-use Drupal\simpletest\BrowserTestBase;
-use Drupal\node\Entity\Node;
+use Drupal\touchcast\ConfigTouchcastBrowserTestBase;
 
 /**
- * Class TcApiControllerTest
+ * Class TcApiTest
  * @group tc_api
  */
-class TcApiTest extends BrowserTestBase
+class TcApiTest extends ConfigTouchcastBrowserTestBase
 {
 
     public static $modules = [
@@ -25,23 +23,21 @@ class TcApiTest extends BrowserTestBase
     {
         parent::setUp();
 
-        $faker = \Faker\Factory::create();
-
-        $contentTypeName = $faker->word;
+        $contentTypeName = $this->faker->word;
         $this->createContentType($contentTypeName);
 
         $nodesData = [
             [
-                'title' => $faker->sentence(3),
-                'alias' => '/' . implode('/', $faker->words()),
+                'title' => $this->faker->sentence(3),
+                'alias' => '/' . implode('/', $this->faker->words()),
             ],
             [
-                'title' => $faker->sentence(3),
+                'title' => $this->faker->sentence(3),
                 'alias' => '',
             ],
             [
-                'title' => $faker->sentence(3),
-                'alias' => '/' . $faker->word . '/' . $faker->randomDigit,
+                'title' => $this->faker->sentence(3),
+                'alias' => '/' . $this->faker->word . '/' . $this->faker->randomDigit,
             ],
         ];
 
@@ -98,39 +94,10 @@ class TcApiTest extends BrowserTestBase
         $content_type->save();
     }
 
-    /**
-     * Creates a node with a specified url alias.
-     *
-     * @param string $type
-     * @param string $urlAlias
-     *
-     * @return Node
-     */
-    private function createNode($type, $title, $urlAlias = '')
-    {
-        $node = Node::create(array(
-            'type' => $type,
-            'title' => $title,
-            'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-            'uid' => '1',
-            'status' => 1,
-            'field_fields' => array(),
-        ));
-
-        $node->save();
-
-        if ($urlAlias) {
-            $aliasStorage = $this->container->get('path.alias_storage');
-            $aliasStorage->save('/node/' . $node->id(), $urlAlias, LanguageInterface::LANGCODE_NOT_SPECIFIED, 0);
-        }
-
-        return $node;
-    }
-
     private function checkManifestEndpoint()
     {
         $response = $this->drupalGet('/api/manifest');
-        $this->assertEquals(200, $this->getSession()->getStatusCode());
+        $this->assertResponseOk();
         $responseArray = json_decode($response, true);
         $this->assertEquals($this->expectedManifest, $responseArray);
     }
@@ -139,7 +106,7 @@ class TcApiTest extends BrowserTestBase
     {
         foreach ($this->expectedManifest['pages'] as $pageData) {
             $response = $this->drupalGet('/api/page', ['query' => ['url' => $pageData['url']]]);
-            $this->assertEquals(200, $this->getSession()->getStatusCode());
+            $this->assertResponseOk();
             $responseArray = json_decode($response, true);
             $this->assertEquals($this->nodesTitles[$pageData['url']], $responseArray['title'][0]['value']);
         }
@@ -148,7 +115,7 @@ class TcApiTest extends BrowserTestBase
     private function checkPageEndpointThrowsExceptionForMissingUrl()
     {
         $response = $this->drupalGet('/api/page');
-        $this->assertEquals(400, $this->getSession()->getStatusCode());
+        $this->assertResponseStatus(400);
         $responseArray = json_decode($response, true);
         $this->assertArrayHasKey('message', $responseArray);
     }
@@ -156,7 +123,7 @@ class TcApiTest extends BrowserTestBase
     private function checkPageEndpointThrowsExceptionForInvalidUrl()
     {
         $response = $this->drupalGet('/api/page', ['query' => ['url' => '/invalid/alias']]);
-        $this->assertEquals(400, $this->getSession()->getStatusCode());
+        $this->assertResponseStatus(400);
         $responseArray = json_decode($response, true);
         $this->assertArrayHasKey('message', $responseArray);
     }
