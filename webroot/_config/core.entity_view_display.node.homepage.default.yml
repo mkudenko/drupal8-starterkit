@@ -1,0 +1,15 @@
+uuid: 7cde5bb9-b3f7-46c5-be3c-60d53ac1c740
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.homepage
+  module:
+    - user
+id: node.homepage.default
+targetEntityType: node
+bundle: homepage
+mode: default
+content: {  }
+hidden:
+  links: true

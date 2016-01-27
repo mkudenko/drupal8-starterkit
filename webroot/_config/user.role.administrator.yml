@@ -10,3 +10,8 @@ permissions:
   - 'create url aliases'
   - 'access toolbar'
   - 'use text format full_html'
+  - 'access content overview'
+  - 'create homepage content'
+  - 'edit any homepage content'
+  - 'edit own homepage content'
+  - 'view the administration theme'
